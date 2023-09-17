@@ -11,7 +11,7 @@ typedef struct Snake{
     struct Snake *next;
 } Snake;
 
-Snake *snakeHead, *snakeTail;
+Snake *snakeHead, *snakeTail, *snakeLast;
 
 typedef struct{
     int y;
@@ -65,10 +65,20 @@ int checkEaten()
 
 int putFood()
 {
+    put_again:
     int num = rand() % (maxy - 1);
     food.y = num % 2 == 0 ? num : num + 1 ;
     num  = rand() % (maxx - 1);
     food.x = num % 2 == 0 ? num : num + 1 ;
+    Snake *nextSnake = snakeHead;
+    while(nextSnake != NULL)
+    {
+        if(nextSnake -> y == food.y && nextSnake -> x == food.x)
+        {
+            goto put_again;
+        }
+        nextSnake = nextSnake -> next;
+    }
     return 0;
 }
 
@@ -85,6 +95,8 @@ int incSnake(int y, int x)
 
 int update_snake()
 {
+    snakeLast -> y = snakeTail -> y;
+    snakeLast -> x = snakeTail -> x;
     Snake *nextSnake = snakeHead -> next;
     int lastx = snakeHead -> x;
     int lasty = snakeHead -> y;
@@ -119,7 +131,7 @@ int update_snake()
 
 int clean_snake(int wait)
 {
-    Snake *nextSnake =  snakeHead;
+    Snake *nextSnake =  snakeHead -> next;
     while(nextSnake != NULL)
     {
         mvprintw(nextSnake -> y, nextSnake -> x, "  ");
@@ -130,19 +142,23 @@ int clean_snake(int wait)
             usleep(wait);
         }
     }
+    mvprintw(snakeLast -> y, snakeLast -> x, "  ");
     refresh();
     return 0;
 }
 
-int show_snake()
+int show_snake(int islost)
 {
-    clear();
     attron(COLOR_PAIR(1));
-    Snake *nextSnake =  snakeHead;
+    Snake *nextSnake = islost == 0 ? snakeHead : snakeHead -> next;
     while(nextSnake != NULL)
     {
         mvprintw(nextSnake -> y, nextSnake -> x, "██");
         nextSnake = nextSnake -> next;
+    }
+    if(islost)
+    {
+        mvprintw(snakeLast -> y, snakeLast -> x, "██");
     }
     attroff(COLOR_PAIR(1));
     attron(COLOR_PAIR(2));
@@ -157,12 +173,14 @@ int lost()
 {
     for(int n = 0; n < 3; n++)
     {
-        clear();
+        clean_snake(0);
+        mvprintw(food.y, food.x, "  ");
         refresh();
         usleep(500000);
-        show_snake();
+        show_snake(1);
         usleep(500000);
     }
+    clean_snake(200000);
     clear();
     timeout(-1);
     printw("You Lost. Your score was %d, \nPress space to EXIT...\n", score);
@@ -209,24 +227,28 @@ int main()
     srand(time(NULL));
     setlocale(LC_ALL, "");
     WINDOW *win = initscr(); start_color(); cbreak(); noecho(); curs_set(0); timeout(0);
-    init_pair(1, COLOR_GREEN, COLOR_GREEN);
+    init_pair(1, COLOR_GREEN, COLOR_GREEN); 
     init_pair(2, COLOR_RED, COLOR_RED);
     getmaxyx(win, maxy, maxx);
     maxx = maxx % 2 == 0 ? maxx : maxx - 1;
     vel.x = 2;
     vel.y = 0;
+    snakeLast = malloc(sizeof(Snake));
     snakeHead = malloc(sizeof(Snake));
-    snakeHead -> x = 22;
+    snakeHead -> x = 12;
     snakeHead -> y = 6;
     snakeHead -> next = NULL;
     snakeTail = snakeHead;
-    ENDLESS = 1;
-    for(int i = 20; i > 2; i -=2)
+    ENDLESS = 1; // Toggle wrap around world here
+    for(int i = 10; i > 4; i -=2)
         incSnake(6, i);
     putFood();
+    snakeLast -> y = snakeTail -> y;
+    snakeLast -> x = snakeTail -> x;
     while(!islost())
     {
-        show_snake();
+        clean_snake(0);
+        show_snake(0);
         move_snake();
         update_snake();
         usleep(100000);
