@@ -20,7 +20,17 @@ typedef struct{
 
 Vect vel, food;
 
-int score, maxy, maxx, ENDLESS;
+int score, maxy, maxx, minx, miny, ENDLESS;
+
+int to_odd(int x, int round_to) 
+{
+    return x % 2 == 0 ? x + round_to : x;
+}
+
+int to_even(int x, int round_to) 
+{
+    return x % 2 == 0 ? x : x + round_to;
+}
 
 int move_snake()
 {
@@ -53,6 +63,12 @@ int move_snake()
     return 0;
 }
 
+int showScore()
+{
+    mvprintw(1, maxx - 7,"%8d", score);
+    return 0;
+}
+
 int checkEaten()
 {
     if((food.x == snakeHead -> x && food.y == snakeHead -> y) ||
@@ -63,22 +79,29 @@ int checkEaten()
     return 0;
 }
 
-int putFood()
+int is_food_on_snake(Vect food) 
 {
-    put_again:
-    int num = rand() % (maxy - 1);
-    food.y = num % 2 == 0 ? num : num + 1 ;
-    num  = rand() % (maxx - 1);
-    food.x = num % 2 == 0 ? num : num + 1 ;
     Snake *nextSnake = snakeHead;
     while(nextSnake != NULL)
     {
         if(nextSnake -> y == food.y && nextSnake -> x == food.x)
         {
-            goto put_again;
+            return 1;
         }
         nextSnake = nextSnake -> next;
     }
+    return 0;
+}
+
+int putFood()
+{
+    do 
+    {
+        int num = (rand() % (maxy - 4)) + 3;
+        food.y = num;
+        num  = (rand() % (maxx - 4)) + 1;
+        food.x = to_odd(num, 1);
+    } while (is_food_on_snake(food));
     return 0;
 }
 
@@ -115,15 +138,16 @@ int update_snake()
     snakeHead -> y += vel.y;
     if(ENDLESS)
     {
-        snakeHead -> x = snakeHead -> x < 0 ? maxx - 2 : snakeHead -> x;
-        snakeHead -> x = snakeHead -> x > maxx-1 ? 0 : snakeHead -> x;
-        snakeHead -> y = snakeHead -> y < 0 ? maxy - 1 : snakeHead -> y;
-        snakeHead -> y = snakeHead -> y > maxy-1 ? 0 : snakeHead -> y;
+        snakeHead -> x = snakeHead -> x < minx ? maxx - 2 : snakeHead -> x;
+        snakeHead -> x = snakeHead -> x > maxx-1 ? minx : snakeHead -> x;
+        snakeHead -> y = snakeHead -> y < miny ? maxy - 1 : snakeHead -> y;
+        snakeHead -> y = snakeHead -> y > maxy-1 ? miny : snakeHead -> y;
     }
     if(checkEaten())
     {
         putFood();
         score += 1;
+        showScore();
         incSnake(snakeTail -> y, snakeTail -> x);
     }
     return 0;
@@ -174,7 +198,7 @@ int lost()
     for(int n = 0; n < 3; n++)
     {
         clean_snake(0);
-        mvprintw(food.y, food.x, "  ");
+        //mvprintw(food.y, food.x, "  ");
         refresh();
         usleep(500000);
         show_snake(1);
@@ -191,7 +215,7 @@ int lost()
 int islost()
 {
 
-    if(!ENDLESS && (snakeHead -> x < 0 || snakeHead -> x > maxx-1 || snakeHead -> y < 0 || snakeHead -> y > maxy-1))
+    if(!ENDLESS && (snakeHead -> x < minx || snakeHead -> x > maxx-1 || snakeHead -> y < miny || snakeHead -> y > maxy-1))
     {
         lost();
         return 1;
@@ -222,36 +246,64 @@ int freeMem()
     return 0;
 }
 
+int drawBox()
+{
+    int i;
+    mvprintw(0, maxx - 10,"┌────────┐");
+    mvprintw(1, maxx - 10,"│        │");
+    mvprintw(2, 0, "┌");
+    for(i = 1; i < maxx-10; i++)
+        mvprintw(2, i, "─");
+    mvprintw(2, i, "┴────────┤");
+    for(i = 3; i < maxy-1; i++)
+    {
+        mvprintw(i, 0, "│");
+        mvprintw(i, maxx-1, "│");
+    }
+    mvprintw(maxy-1, 0, "└");
+    for(i = 1; i < maxx-1; i++)
+        mvprintw(maxy-1, i, "─");
+    mvprintw(maxy-1, maxx-1, "┘");
+    return 0;
+}
+
 int main()
 {
     srand(time(NULL));
     setlocale(LC_ALL, "");
     WINDOW *win = initscr(); start_color(); cbreak(); noecho(); curs_set(0); timeout(0);
-    init_pair(1, COLOR_GREEN, COLOR_GREEN); 
+    init_pair(1, COLOR_GREEN, COLOR_GREEN); // Could have done the stuff only with one color pair if there a printed "  "(spaces) in place of food
     init_pair(2, COLOR_RED, COLOR_RED);
     getmaxyx(win, maxy, maxx);
-    maxx = maxx % 2 == 0 ? maxx : maxx - 1;
+    maxx = to_odd(maxx, -1);
     vel.x = 2;
     vel.y = 0;
     snakeLast = malloc(sizeof(Snake));
     snakeHead = malloc(sizeof(Snake));
-    snakeHead -> x = 12;
-    snakeHead -> y = 6;
+    snakeHead -> x = 15; //(int)(maxx/2);
+    snakeHead -> y = 5; //(int)(maxy/2);
     snakeHead -> next = NULL;
     snakeTail = snakeHead;
     ENDLESS = 1; // Toggle wrap around world here
-    for(int i = 10; i > 4; i -=2)
-        incSnake(6, i);
+    for(int i = 2; i < 11 ; i +=2)
+        incSnake(snakeHead -> y, snakeHead -> x - i);
     putFood();
     snakeLast -> y = snakeTail -> y;
     snakeLast -> x = snakeTail -> x;
+    drawBox();
+    miny = 3;
+    minx = 1;
+    maxy -= 1;
+    maxx -= 2;
+    showScore();
+    int speed = 100000;
     while(!islost())
     {
         clean_snake(0);
         show_snake(0);
         move_snake();
         update_snake();
-        usleep(100000);
+        usleep(speed);
     }
     freeMem();
     endwin();
