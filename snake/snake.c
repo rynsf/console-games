@@ -37,24 +37,37 @@ int move_snake()
     char inpt = getch();
     if(inpt)
     {
+        if(inpt == '\033') // handling escape code for arrow keys
+        {
+            getch();
+            inpt = getch();
+        }
         switch(inpt)
         {
             case 'w':
+            case 'k':
+            case 'A':
                 vel.x = 0;
                 vel.y = vel.y == 1 ? vel.y : -1;
                 break;
 
             case 's':
+            case 'j':
+            case 'B':
                 vel.x = 0;
                 vel.y = vel.y == -1 ? vel.y : 1;
                 break;
 
             case 'a':
+            case 'h':
+            case 'D':
                 vel.x = vel.x == 2 ? vel.x : -2;
                 vel.y = 0;
                 break;
 
             case 'd':
+            case 'l':
+            case 'C':
                 vel.x = vel.x == -2 ? vel.x : 2;
                 vel.y = 0;
                 break;
