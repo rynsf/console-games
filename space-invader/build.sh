@@ -2,4 +2,4 @@
 
 set -xe
 
-gcc space-invader.c -o space-invader.out
+gcc space-invader.c -lncursesw -o space-invader.out
