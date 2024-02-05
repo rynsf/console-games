@@ -7,6 +7,23 @@ typedef struct {
     int x, y;
 } vec;
 
+typedef struct {
+    int x, y, w, h;
+} rect;
+
+char* glyphs[2] = {
+   &"       ▄\n"
+    "      ███\n"
+    "▄█████████████▄\n"
+    "███████████████\n",
+
+   &"   ▀▄      ▄▀\n"
+    "█  ██▀████▀██  █\n"
+    "████████████████\n"
+    " ▀█▀▀▀▀▀▀▀▀▀▀█▀\n"
+    " ▀            ▀\n",
+};
+
 int maxx, maxy;
 
 int update() {
@@ -30,8 +47,8 @@ int main() {
     timeout(0);
     getmaxyx(win, maxy, maxx);
     char input;
-    vec craft, laser;
-    vec alien[10][10]; // what is the size here?
+    rect craft, laser;
+    rect alien[10][10]; // what is the size here?
 
     while(!islost()) {
         input = getch();
@@ -46,7 +63,6 @@ int main() {
         render();
         usleep(33333);
     }
-
 
     return 0;
 }
