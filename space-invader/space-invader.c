@@ -4,24 +4,37 @@
 #include <unistd.h>
 
 typedef struct {
-    int x, y;
-} vec;
-
-typedef struct {
     int x, y, w, h;
-} rect;
+    int glyph;
+} character;
 
-char* glyphs[2] = {
-   &"       ▄\n"
-    "      ███\n"
-    "▄█████████████▄\n"
-    "███████████████\n",
+character craft = {
+    .x = 4,
+    .y = 3,
+    .w = 15,
+    .h = 4,
+    .glyph = 0
+};
+character laser;
+character alien[10][10]; // what is the size here?
 
-   &"   ▀▄      ▄▀\n"
-    "█  ██▀████▀██  █\n"
-    "████████████████\n"
-    " ▀█▀▀▀▀▀▀▀▀▀▀█▀\n"
-    " ▀            ▀\n",
+char* glyphs[2][6] = {
+    {
+        &"       ▄\n",
+        &"      ███\n",
+        &"▄█████████████▄\n",
+        &"███████████████\n",
+        NULL,
+    },
+
+    {
+        &"   ▀▄      ▄▀\n",
+        &"█  ██▀████▀██  █\n",
+        &"████████████████\n",
+        &" ▀█▀▀▀▀▀▀▀▀▀▀█▀\n",
+        &" ▀            ▀\n",
+        NULL,
+    }
 };
 
 int maxx, maxy;
@@ -30,7 +43,15 @@ int update() {
     return 0;
 }
 
+int renderglyph(character glyph) {
+    for(int n = 0; glyphs[glyph.glyph][n] != NULL; ++n) {
+        mvprintw(glyph.y+n, glyph.x, "%s", glyphs[glyph.glyph][n]);
+    }
+    return 0;
+}
+    
 int render() {
+    renderglyph(craft);
     return 0;
 }
 
@@ -47,8 +68,6 @@ int main() {
     timeout(0);
     getmaxyx(win, maxy, maxx);
     char input;
-    rect craft, laser;
-    rect alien[10][10]; // what is the size here?
 
     while(!islost()) {
         input = getch();
@@ -63,6 +82,6 @@ int main() {
         render();
         usleep(33333);
     }
-
+    endwin();
     return 0;
 }
