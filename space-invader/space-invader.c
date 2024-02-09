@@ -3,6 +3,8 @@
 #include <locale.h>
 #include <unistd.h>
 
+#define LASER_VELOCITY 1
+
 typedef struct {
     int x, y, w, h;
     int glyph;
@@ -16,6 +18,9 @@ character craft = {
     .glyph = 0
 };
 
+character laser;
+character alien[10][10]; // what is the size here?
+
 int craftMoveRight() {
     craft.x += 1;
     return 0;
@@ -26,8 +31,24 @@ int craftMoveLeft() {
     return 0;
 }
 
-character laser;
-character alien[10][10]; // what is the size here?
+int noLaser() {
+    return laser.x == -1;
+}
+
+int laserShoot() {
+    if(noLaser()) {
+        laser.x = craft.x + 7;
+        laser.y = craft.y + 1;
+    }
+    return 0;
+}
+
+int laserCollison() {
+    if (laser.y < 0) {
+        laser.x = -1;
+    }
+    return 0;
+}
 
 char* glyphs[2][6] = {
     {
@@ -51,6 +72,10 @@ char* glyphs[2][6] = {
 int maxx, maxy;
 
 int update() {
+    laserCollison();
+    if(!noLaser()) {
+        laser.y -= LASER_VELOCITY;
+    }
     return 0;
 }
 
@@ -64,6 +89,9 @@ int renderglyph(character glyph) {
 int render() {
     clear();
     renderglyph(craft);
+    if(!noLaser()) {
+        mvprintw(laser.y, laser.x, "█");
+    }
     return 0;
 }
 
@@ -74,6 +102,7 @@ int islost() {
 int init() {
     craft.x = maxx / 2;
     craft.y = maxy - 4;
+    laser.x = -1; 
     return 0;
 }
 int main() {
@@ -101,6 +130,9 @@ int main() {
                 case 'l':
                     craftMoveRight();
                     break;
+
+                case ' ':
+                    laserShoot();
                 
                 default: {} 
             }
