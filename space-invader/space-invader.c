@@ -88,7 +88,7 @@ int alienMoveDown() {
     return 0;
 }
 
-char* glyphs[3][6] = {
+char* glyphs[7][6] = {
     {
         &"       ▄\n",
         &"      ███\n",
@@ -96,7 +96,6 @@ char* glyphs[3][6] = {
         &"███████████████\n",
         NULL,
     },
-
     {
         &"   ▀▄      ▄▀\n",
         &"█  ██▀████▀██  █\n",
@@ -112,6 +111,34 @@ char* glyphs[3][6] = {
         &"█  █▀▀▀▀▀▀▀▀█  █\n",
         &"    ▀▀    ▀▀\n",
         NULL,
+    },
+    {
+        &"     ▄▄▄▄▄▄\n",
+        &"▄██████████████▄\n",
+        &"████▄▄████▄▄████\n",
+        &"   ▄▀▀▀▄▄▀▀▀▄\n",
+        &"    ▀      ▀\n",
+    },
+    {
+        &"     ▄▄▄▄▄▄\n",
+        &"▄██████████████▄\n",
+        &"████▄▄████▄▄████\n",
+        &"  ▄▄▀▀▀▄▄▀▀▀▄▄\n",
+        &"▀▀            ▀▀\n",
+    },
+    {
+        &"   ▄▄▄▄\n",
+        &" ▄██████▄\n",
+        &"███▄██▄███\n",
+        &"  ▄▀▄▄▀▄\n",
+        &" ▀ ▀  ▀ ▀\n",
+    },
+    {
+        &"   ▄▄▄▄\n",
+        &" ▄██████▄\n",
+        &"███▄██▄███\n",
+        &"  ▄▀  ▀▄\n",
+        &"   ▀  ▀\n",
     }
 };
 
@@ -192,17 +219,25 @@ int islost() {
 }
 
 int init() {
+    int lineGlyph[5] = {5, 1, 1, 3, 3};
     craft.x = maxx / 2;
     craft.y = maxy - 4;
     laser.x = -1; 
     //create alien
     for(int y = 0; y < NUM_ALIEN_Y; ++y) {
         for(int x = 0; x < NUM_ALIEN_X; ++x) {
-            alien[y][x].x = 2 + 18 * x;
-            alien[y][x].y = 2 + 6 * y;
-            alien[y][x].w = 16;
-            alien[y][x].h = 5;
-            alien[y][x].glyph = 1;
+            if(lineGlyph[y] == 5) {
+                alien[y][x].x = 2 + 18 * x + 3;
+                alien[y][x].y = 2 + 6 * y;
+                alien[y][x].w = 10;
+                alien[y][x].h = 5;
+            } else {
+                alien[y][x].x = 2 + 18 * x;
+                alien[y][x].y = 2 + 6 * y;
+                alien[y][x].w = 16;
+                alien[y][x].h = 5;
+            }
+            alien[y][x].glyph = lineGlyph[y];
         }
     }
     return 0;
