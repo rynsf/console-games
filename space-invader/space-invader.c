@@ -58,6 +58,19 @@ int laserDestroy() {
 int laserCollison() {
     if (laser.y < 0) {
         laserDestroy();
+        return 0;
+    }
+    for(int y = 0; y < NUM_ALIEN_Y; ++y) {
+        for(int x = 0; x < NUM_ALIEN_X; ++x) {
+            if(laser.x >= alien[y][x].x &&
+                laser.y >= alien[y][x].y &&
+                laser.x <= alien[y][x].x + alien[y][x].w &&
+                laser.y <= alien[y][x].y + alien[y][x].h) {
+                alien[y][x].x = -1;
+                laserDestroy();
+                return 0;
+            }
+        }
     }
     return 0;
 }
@@ -130,7 +143,9 @@ int update() {
         } else {
             for(int y = 0; y < NUM_ALIEN_Y; ++y) {
                 for(int x = 0; x < NUM_ALIEN_X; ++x) {
-                    alien[y][x].x += alienvelx;
+                    if(!alienDead(alien[y][x])) {
+                        alien[y][x].x += alienvelx;
+                    }
                 }
             }
         }
