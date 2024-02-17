@@ -5,6 +5,8 @@
 
 #define LASER_VELOCITY 1
 #define ACC_THRESH 30
+#define NUM_ALIEN_X 10
+#define NUM_ALIEN_Y 5
 
 typedef struct {
     int x, y, w, h;
@@ -21,10 +23,10 @@ character craft = {
 
 int alienvelx = 2;
 int accumulator = 0;
-int pauseval = 10; // bad variable name
+int pauseval = 2; // bad variable name
 
 character laser;
-character alien[10][10]; // what is the size here?
+character alien[NUM_ALIEN_Y][NUM_ALIEN_X];
 
 int craftMoveRight() {
     craft.x += 1;
@@ -65,7 +67,12 @@ int alienDead(character a) {
 }
 
 int alienMoveDown() {
-    alien[0][0].y += 2; // deal with magic nums TODO
+    for(int y = 0; y < NUM_ALIEN_Y; ++y) {
+        for(int x = 0; x < NUM_ALIEN_X; ++x) {
+            alien[y][x].y += 2; // deal with magic nums TODO
+        }
+    }
+    return 0;
 }
 
 char* glyphs[3][6] = {
@@ -98,25 +105,42 @@ char* glyphs[3][6] = {
 int maxx, maxy;
 
 int update() {
+    int moveDown = false;
     laserCollison();
     //check collison with aliens
 
     //move aliens.
     accumulator += pauseval;
     if(accumulator >= ACC_THRESH) {
-        if(!alienDead(alien[0][0])) {
-            if(alien[0][0].x >= maxx - alien[0][0].w - 2 && alienvelx == 2) {
-                alienvelx = -2;
-                alienMoveDown();
-            } else if(alien[0][0].x <= 2 && alienvelx == -2) {
-                alienvelx = 2;
-                alienMoveDown();
-            } else {
-                alien[0][0].x += alienvelx;
+        for(int y = 0; y < NUM_ALIEN_Y; ++y) {
+            for(int x = 0; x < NUM_ALIEN_X; ++x) {
+                if((alien[y][x].x >= maxx - alien[y][x].w - 2 
+                    && alienvelx == 2)
+                    || (alien[y][x].x <= 2
+                    && alienvelx == -2)
+                    && !alienDead(alien[y][x])) {
+                    moveDown = true;
+                }
             }
-            alien[0][0].glyph += alien[0][0].glyph % 2 ? 1 : -1;
         }
-        accumulator = 0;
+
+        if(moveDown) {
+            alienvelx = alienvelx == 2 ? -2 : 2;
+            alienMoveDown();
+        } else {
+            for(int y = 0; y < NUM_ALIEN_Y; ++y) {
+                for(int x = 0; x < NUM_ALIEN_X; ++x) {
+                    alien[y][x].x += alienvelx;
+                }
+            }
+        }
+
+        for(int y = 0; y < NUM_ALIEN_Y; ++y) {
+            for(int x = 0; x < NUM_ALIEN_X; ++x) {
+                alien[y][x].glyph += alien[y][x].glyph % 2 ? 1 : -1;
+            }
+        }
+    accumulator = 0;
     }
         
     if(!noLaser()) {
@@ -135,8 +159,12 @@ int renderglyph(character glyph) {
 int render() {
     clear();
     renderglyph(craft);
-    if(!alienDead(alien[0][0])) {
-        renderglyph(alien[0][0]);
+    for(int y = 0; y < NUM_ALIEN_Y; ++y) {
+        for(int x = 0; x < NUM_ALIEN_X; ++x) {
+            if(!alienDead(alien[y][x])) {
+                renderglyph(alien[y][x]);
+            }
+        }
     }
     if(!noLaser()) {
         mvprintw(laser.y, laser.x, "█");
@@ -153,11 +181,15 @@ int init() {
     craft.y = maxy - 4;
     laser.x = -1; 
     //create alien
-    alien[0][0].x = 80;
-    alien[0][0].y = 2;
-    alien[0][0].w = 16;
-    alien[0][0].h = 5;
-    alien[0][0].glyph = 1;
+    for(int y = 0; y < NUM_ALIEN_Y; ++y) {
+        for(int x = 0; x < NUM_ALIEN_X; ++x) {
+            alien[y][x].x = 2 + 18 * x;
+            alien[y][x].y = 2 + 6 * y;
+            alien[y][x].w = 16;
+            alien[y][x].h = 5;
+            alien[y][x].glyph = 1;
+        }
+    }
     return 0;
 }
 
