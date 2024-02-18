@@ -2,6 +2,7 @@
 #include <ncurses.h>
 #include <locale.h>
 #include <unistd.h>
+#include <stdlib.h>
 
 #define LASER_VELOCITY 1
 #define ACC_THRESH 30
@@ -20,80 +21,15 @@ character craft = {
     .h = 4,
     .glyph = 0
 };
-
 int alienvelx = 2;
 int accumulator = 0;
 int pauseval = 2; // bad variable name?
 int maxx, maxy;
-
 character laser;
 character alien[NUM_ALIEN_Y][NUM_ALIEN_X];
+character alienLasers[2];
 
-int craftMoveRight() {
-    craft.x += 1;
-    if(craft.x > maxx - craft.w) {
-        craft.x = maxx - craft.w;
-    }
-    return 0;
-}
-
-int craftMoveLeft() {
-    craft.x -= 1;
-    if(craft.x < 0) {
-        craft.x = 0;
-    }
-    return 0;
-}
-
-int noLaser() {
-    return laser.x == -1;
-}
-
-int laserShoot() {
-    if(noLaser()) {
-        laser.x = craft.x + 7;
-        laser.y = craft.y + 1;
-    }
-    return 0;
-}
-
-int laserDestroy() {
-    laser.x = -1;
-    return 0;
-}
-
-int laserCollison() {
-    if (laser.y < 0) {
-        laserDestroy();
-        return 0;
-    }
-    for(int y = 0; y < NUM_ALIEN_Y; ++y) {
-        for(int x = 0; x < NUM_ALIEN_X; ++x) {
-            if(laser.x >= alien[y][x].x &&
-                laser.y >= alien[y][x].y &&
-                laser.x <= alien[y][x].x + alien[y][x].w &&
-                laser.y <= alien[y][x].y + alien[y][x].h) {
-                alien[y][x].x = -1;
-                laserDestroy();
-                return 0;
-            }
-        }
-    }
-    return 0;
-}
-
-int alienDead(character a) {
-    return a.x == -1;
-}
-
-int alienMoveDown() {
-    for(int y = 0; y < NUM_ALIEN_Y; ++y) {
-        for(int x = 0; x < NUM_ALIEN_X; ++x) {
-            alien[y][x].y += 2; // deal with magic nums TODO
-        }
-    }
-    return 0;
-}
+char* laserGlyphs[] = {"█", "█", "█"};//"┼", "ϟ"};
 
 char* glyphs[7][6] = {
     {
@@ -153,10 +89,106 @@ char* glyphs[7][6] = {
     }
 };
 
+int collisonPointRect(character point, character rect) {
+    return (point.x >= rect.x &&
+        point.y >= rect.y &&
+        point.x <= rect.x + rect.w &&
+        point.y <= rect.y + rect.h);
+}
+
+int craftMoveRight() {
+    craft.x += 1;
+    if(craft.x > maxx - craft.w) {
+        craft.x = maxx - craft.w;
+    }
+    return 0;
+}
+
+int craftMoveLeft() {
+    craft.x -= 1;
+    if(craft.x < 0) {
+        craft.x = 0;
+    }
+    return 0;
+}
+
+int noLaser(character laser) {
+    return laser.x == -1;
+}
+
+int laserShoot() {
+    if(noLaser(laser)) {
+        laser.x = craft.x + 7;
+        laser.y = craft.y + 1;
+    }
+    return 0;
+}
+
+int laserDestroy() {
+    laser.x = -1;
+    return 0;
+}
+
+int laserCollison() {
+    if (laser.y < 0) {
+        laserDestroy();
+        return 0;
+    }
+    for(int y = 0; y < NUM_ALIEN_Y; ++y) {
+        for(int x = 0; x < NUM_ALIEN_X; ++x) {
+            if(collisonPointRect(laser, alien[y][x])) {
+                alien[y][x].x = -1;
+                laserDestroy();
+                return 0;
+            }
+        }
+    }
+    return 0;
+}
+
+int alienDead(character a) {
+    return a.x == -1;
+}
+
+int alienLasersCollison() {
+    for(int x = 0; x < 2; ++x) {
+        if(alienLasers[x].y > maxy) {
+            alienLasers[x].x = -1;
+        }
+    }
+    return 0;
+}
+
+int alienMoveDown() {
+    for(int y = 0; y < NUM_ALIEN_Y; ++y) {
+        for(int x = 0; x < NUM_ALIEN_X; ++x) {
+            alien[y][x].y += 2; // deal with magic nums TODO
+        }
+    }
+    return 0;
+}
+
+int alienShootLaser(character* alienLaser) {
+    for(int x = 0; x < NUM_ALIEN_X; ++x) {
+        for(int y = NUM_ALIEN_Y - 1; y >= 0; --y) {
+            if(!alienDead(alien[y][x])) {
+                if(rand() % 10 == 0) {
+                    alienLaser -> x = alien[y][x].x + alien[y][x].w / 2; 
+                    alienLaser -> y = alien[y][x].y + alien[y][x].h; 
+                    alienLaser -> glyph = rand() % 2 ? 1 : 2;
+                    return 0;
+                }
+                break;
+            }
+        }
+    }
+    return 0;
+}
 
 int update() {
     int moveDown = false;
     laserCollison();
+    alienLasersCollison();
     //check collison with aliens
 
     //move aliens.
@@ -195,8 +227,15 @@ int update() {
     accumulator = 0;
     }
         
-    if(!noLaser()) {
+    if(!noLaser(laser)) {
         laser.y -= LASER_VELOCITY;
+    }
+    for(int x = 0; x < 2; x++) {
+        if(noLaser(alienLasers[x])) {
+            alienShootLaser(&alienLasers[x]);
+        } else {
+            alienLasers[x].y += 1;
+        }
     }
     return 0;
 }
@@ -218,8 +257,14 @@ int render() {
             }
         }
     }
-    if(!noLaser()) {
+    if(!noLaser(laser)) {
         mvprintw(laser.y, laser.x, "█");
+    }
+
+    for(int x = 0; x < 2; x++) {
+        if(!noLaser(alienLasers[x])) {
+            mvprintw(alienLasers[x].y, alienLasers[x].x, "%s", laserGlyphs[alienLasers[x].glyph]);
+        }
     }
     return 0;
 }
@@ -249,6 +294,9 @@ int init() {
             }
             alien[y][x].glyph = lineGlyph[y];
         }
+    }
+    for(int n = 0; n < 2; n++) {
+        alienLasers[n].x = -1;
     }
     return 0;
 }
