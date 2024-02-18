@@ -23,7 +23,7 @@ character craft = {
 
 int alienvelx = 2;
 int accumulator = 0;
-int pauseval = 2; // bad variable name
+int pauseval = 2; // bad variable name?
 
 character laser;
 character alien[NUM_ALIEN_Y][NUM_ALIEN_X];
@@ -118,6 +118,7 @@ char* glyphs[7][6] = {
         &"████▄▄████▄▄████\n",
         &"   ▄▀▀▀▄▄▀▀▀▄\n",
         &"    ▀      ▀\n",
+        NULL,
     },
     {
         &"     ▄▄▄▄▄▄\n",
@@ -125,6 +126,7 @@ char* glyphs[7][6] = {
         &"████▄▄████▄▄████\n",
         &"  ▄▄▀▀▀▄▄▀▀▀▄▄\n",
         &"▀▀            ▀▀\n",
+        NULL,
     },
     {
         &"   ▄▄▄▄\n",
@@ -132,6 +134,7 @@ char* glyphs[7][6] = {
         &"███▄██▄███\n",
         &"  ▄▀▄▄▀▄\n",
         &" ▀ ▀  ▀ ▀\n",
+        NULL,
     },
     {
         &"   ▄▄▄▄\n",
@@ -139,6 +142,7 @@ char* glyphs[7][6] = {
         &"███▄██▄███\n",
         &"  ▄▀  ▀▄\n",
         &"   ▀  ▀\n",
+        NULL,
     }
 };
 
@@ -227,12 +231,12 @@ int init() {
     for(int y = 0; y < NUM_ALIEN_Y; ++y) {
         for(int x = 0; x < NUM_ALIEN_X; ++x) {
             if(lineGlyph[y] == 5) {
-                alien[y][x].x = 2 + 18 * x + 3;
+                alien[y][x].x = 2 + 19 * x + 3;
                 alien[y][x].y = 2 + 6 * y;
                 alien[y][x].w = 10;
                 alien[y][x].h = 5;
             } else {
-                alien[y][x].x = 2 + 18 * x;
+                alien[y][x].x = 2 + 19 * x;
                 alien[y][x].y = 2 + 6 * y;
                 alien[y][x].w = 16;
                 alien[y][x].h = 5;
@@ -253,6 +257,12 @@ int main() {
     getmaxyx(win, maxy, maxx);
     init();
     char input;
+
+    if(maxx < 250 || maxy < 50) {
+        endwin();
+        printf("Terminal too small :(\n");
+        return 0;
+    }
 
     while(!islost()) {
         input = getch();
