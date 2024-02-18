@@ -24,17 +24,24 @@ character craft = {
 int alienvelx = 2;
 int accumulator = 0;
 int pauseval = 2; // bad variable name?
+int maxx, maxy;
 
 character laser;
 character alien[NUM_ALIEN_Y][NUM_ALIEN_X];
 
 int craftMoveRight() {
     craft.x += 1;
+    if(craft.x > maxx - craft.w) {
+        craft.x = maxx - craft.w;
+    }
     return 0;
 }
 
 int craftMoveLeft() {
     craft.x -= 1;
+    if(craft.x < 0) {
+        craft.x = 0;
+    }
     return 0;
 }
 
@@ -146,7 +153,6 @@ char* glyphs[7][6] = {
     }
 };
 
-int maxx, maxy;
 
 int update() {
     int moveDown = false;
