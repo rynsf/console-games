@@ -129,6 +129,10 @@ int laserDestroy() {
     return 0;
 }
 
+int alienDead(character a) {
+    return a.x == -1;
+}
+
 int laserCollison() {
     if (laser.y < 0) {
         laserDestroy();
@@ -136,18 +140,16 @@ int laserCollison() {
     }
     for(int y = 0; y < NUM_ALIEN_Y; ++y) {
         for(int x = 0; x < NUM_ALIEN_X; ++x) {
-            if(collisonPointRect(laser, alien[y][x])) {
-                alien[y][x].x = -1;
-                laserDestroy();
-                return 0;
+            if(!alienDead(alien[y][x])) {
+                if(collisonPointRect(laser, alien[y][x])) {
+                    alien[y][x].x = -1;
+                    laserDestroy();
+                    return 0;
+                }
             }
         }
     }
     return 0;
-}
-
-int alienDead(character a) {
-    return a.x == -1;
 }
 
 int alienLasersCollison() {
@@ -274,6 +276,7 @@ int islost() {
 }
 
 int init() {
+    srand(69);
     int lineGlyph[5] = {5, 1, 1, 3, 3};
     craft.x = maxx / 2;
     craft.y = maxy - 4;
