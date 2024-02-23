@@ -8,6 +8,9 @@
 #define ACC_THRESH 30
 #define NUM_ALIEN_X 10
 #define NUM_ALIEN_Y 5
+#define NUM_COVER 4
+#define COVER_WIDTH 18
+#define COVER_HEIGHT 5
 
 typedef struct {
     int x, y, w, h;
@@ -28,6 +31,8 @@ int maxx, maxy;
 character laser;
 character alien[NUM_ALIEN_Y][NUM_ALIEN_X];
 character alienLasers[2];
+character cover[NUM_COVER];
+int coverBlock[NUM_COVER][COVER_HEIGHT][COVER_WIDTH];
 
 char* laserGlyphs[] = {"█", "█", "█"};//"┼", "ϟ"};
 
@@ -242,6 +247,15 @@ int update() {
     return 0;
 }
 
+int renderCover(character cover) {
+    for(int y = 0; y < cover.h; ++y) {
+        for(int x = 0; x < cover.w; ++x) {
+            mvprintw(cover.y + y, cover.x + x, "%s", "█");
+        }
+    }
+    return 0;
+}
+
 int renderglyph(character glyph) {
     for(int n = 0; glyphs[glyph.glyph][n] != NULL; ++n) {
         mvprintw(glyph.y+n, glyph.x, "%s", glyphs[glyph.glyph][n]);
@@ -267,6 +281,10 @@ int render() {
         if(!noLaser(alienLasers[x])) {
             mvprintw(alienLasers[x].y, alienLasers[x].x, "%s", laserGlyphs[alienLasers[x].glyph]);
         }
+    }
+
+    for(int n = 0; n < NUM_COVER; ++n) {
+        renderCover(cover[n]);
     }
     return 0;
 }
@@ -300,6 +318,17 @@ int init() {
     }
     for(int n = 0; n < 2; n++) {
         alienLasers[n].x = -1;
+    }
+    for(int n = 0; n < NUM_COVER; ++n) {
+        cover[n].x = (maxx/5) * (n+1) - (COVER_WIDTH/2);
+        cover[n].y = maxy - COVER_HEIGHT - 6;
+        cover[n].w = COVER_WIDTH;
+        cover[n].h = COVER_HEIGHT;
+        for(int y = 0; y < COVER_HEIGHT; ++y) {
+            for(int x = 0; x < COVER_WIDTH; ++x) {
+                coverBlock[n][y][x] = 1;
+            }
+        }
     }
     return 0;
 }
