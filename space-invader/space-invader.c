@@ -9,7 +9,7 @@
 #define NUM_ALIEN_X 10
 #define NUM_ALIEN_Y 5
 #define NUM_COVER 4
-#define COVER_WIDTH 18
+#define COVER_WIDTH 24
 #define COVER_HEIGHT 5
 
 typedef struct {
@@ -97,12 +97,12 @@ char* glyphs[7][6] = {
 int collisonPointRect(character point, character rect) {
     return (point.x >= rect.x &&
         point.y >= rect.y &&
-        point.x <= rect.x + rect.w &&
-        point.y <= rect.y + rect.h);
+        point.x < rect.x + rect.w &&
+        point.y < rect.y + rect.h);
 }
 
 int craftMoveRight() {
-    craft.x += 1;
+    craft.x += 2;
     if(craft.x > maxx - craft.w) {
         craft.x = maxx - craft.w;
     }
@@ -110,7 +110,7 @@ int craftMoveRight() {
 }
 
 int craftMoveLeft() {
-    craft.x -= 1;
+    craft.x -= 2;
     if(craft.x < 0) {
         craft.x = 0;
     }
@@ -192,6 +192,20 @@ int alienShootLaser(character* alienLaser) {
     return 0;
 }
 
+int collideCover(character laser) {
+    for(int n = 0; n < NUM_COVER; ++n) {
+        if(collisonPointRect(laser, cover[n])) {
+            int ofsetx = abs(laser.x - cover[n].x);
+            int ofsety = abs(laser.y - cover[n].y);
+            if(coverBlock[n][ofsety][ofsetx]) {
+                coverBlock[n][ofsety][ofsetx] = 0;
+                return 1;
+            }
+        }
+    }
+    return 0;
+}
+
 int update() {
     int moveDown = false;
     laserCollison();
@@ -244,13 +258,25 @@ int update() {
             alienLasers[x].y += 1;
         }
     }
+    
+    if(collideCover(laser)) {
+        laser.x = -1;
+    }
+    
+    for(int x = 0; x < NUM_COVER; x++) {
+        if(collideCover(alienLasers[x])) {
+            alienLasers[x].x = -1;
+        }
+    }
     return 0;
 }
 
 int renderCover(character cover) {
     for(int y = 0; y < cover.h; ++y) {
         for(int x = 0; x < cover.w; ++x) {
-            mvprintw(cover.y + y, cover.x + x, "%s", "█");
+            if(coverBlock[cover.glyph][y][x]) {
+                mvprintw(cover.y + y, cover.x + x, "%s", "█");
+            }
         }
     }
     return 0;
@@ -324,6 +350,7 @@ int init() {
         cover[n].y = maxy - COVER_HEIGHT - 6;
         cover[n].w = COVER_WIDTH;
         cover[n].h = COVER_HEIGHT;
+        cover[n].glyph = n;
         for(int y = 0; y < COVER_HEIGHT; ++y) {
             for(int x = 0; x < COVER_WIDTH; ++x) {
                 coverBlock[n][y][x] = 1;
