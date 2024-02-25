@@ -10,7 +10,7 @@
 #define NUM_ALIEN_Y 5
 #define NUM_COVER 4
 #define COVER_WIDTH 24
-#define COVER_HEIGHT 5
+#define COVER_HEIGHT 10
 
 typedef struct {
     int x, y, w, h;
@@ -35,6 +35,8 @@ character cover[NUM_COVER];
 int coverBlock[NUM_COVER][COVER_HEIGHT][COVER_WIDTH];
 
 char* laserGlyphs[] = {"█", "█", "█"};//"┼", "ϟ"};
+
+char* coverGlyphs[] = {" ", "▀", "▄", "█"};//"┼", "ϟ"};
 
 char* glyphs[7][6] = {
     {
@@ -192,13 +194,40 @@ int alienShootLaser(character* alienLaser) {
     return 0;
 }
 
+int coverHaveIndex(int y, int x, character cover) {
+    return (x >= 0 && 
+            y >= 0 &&
+            x < cover.w &&
+            y < cover.h);
+}
+
+int destroyCoverElement(int y, int x, character cover) {
+    if(coverHaveIndex(y, x, cover)) {
+        coverBlock[cover.glyph][y][x] = 0;
+    }
+    return 0;
+}
+
 int collideCover(character laser) {
     for(int n = 0; n < NUM_COVER; ++n) {
         if(collisonPointRect(laser, cover[n])) {
             int ofsetx = abs(laser.x - cover[n].x);
             int ofsety = abs(laser.y - cover[n].y);
             if(coverBlock[n][ofsety][ofsetx]) {
-                coverBlock[n][ofsety][ofsetx] = 0;
+                for(int y = -2; y <= 2; ++y) {
+                    for(int x = -2; x <= 2; ++x) {
+                        if(y == -2 ||
+                           x == -2 ||
+                           y == 2 ||
+                           x == 2) {
+                            if(rand()%2 == 0) {
+                                destroyCoverElement(ofsety+y, ofsetx+x, cover[n]);
+                            }
+                        } else {
+                            destroyCoverElement(ofsety+y, ofsetx+x, cover[n]);
+                        }
+                    }
+                }
                 return 1;
             }
         }
@@ -272,11 +301,11 @@ int update() {
 }
 
 int renderCover(character cover) {
-    for(int y = 0; y < cover.h; ++y) {
+    for(int y = 0; y < cover.h; y += 2) {
         for(int x = 0; x < cover.w; ++x) {
-            if(coverBlock[cover.glyph][y][x]) {
-                mvprintw(cover.y + y, cover.x + x, "%s", "█");
-            }
+            int glyph = coverBlock[cover.glyph][y][x] + 
+                        coverBlock[cover.glyph][y+1][x] * 2;
+            mvprintw(cover.y + y/2, cover.x + x, "%s", coverGlyphs[glyph]);
         }
     }
     return 0;
@@ -299,19 +328,20 @@ int render() {
             }
         }
     }
+
+    for(int n = 0; n < NUM_COVER; ++n) {
+        renderCover(cover[n]);
+    }
+
     if(!noLaser(laser)) {
         mvprintw(laser.y, laser.x, "█");
     }
-
     for(int x = 0; x < 2; x++) {
         if(!noLaser(alienLasers[x])) {
             mvprintw(alienLasers[x].y, alienLasers[x].x, "%s", laserGlyphs[alienLasers[x].glyph]);
         }
     }
 
-    for(int n = 0; n < NUM_COVER; ++n) {
-        renderCover(cover[n]);
-    }
     return 0;
 }
 
@@ -347,7 +377,7 @@ int init() {
     }
     for(int n = 0; n < NUM_COVER; ++n) {
         cover[n].x = (maxx/5) * (n+1) - (COVER_WIDTH/2);
-        cover[n].y = maxy - COVER_HEIGHT - 6;
+        cover[n].y = maxy - COVER_HEIGHT/2 - 6;
         cover[n].w = COVER_WIDTH;
         cover[n].h = COVER_HEIGHT;
         cover[n].glyph = n;
