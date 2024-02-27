@@ -365,27 +365,41 @@ int renderglyph(character glyph) {
     return 0;
 }
     
+int renderAliens() {
+    for(int y = 0; y < NUM_ALIEN_Y; ++y) {
+        for(int x = 0; x < NUM_ALIEN_X; ++x) {
+            if(!alienDead(alien[y][x])) {
+                renderglyph(alien[y][x]);
+            }
+        }
+    }
+    return 0;
+}
+
+int renderCovers() {
+    for(int n = 0; n < NUM_COVER; ++n) {
+        renderCover(cover[n]);
+    }
+    return 0;
+}
+
 int render() {
     switch(gameState) {
         case TITLE:
+            clear();
+            mvprintw(0, 0, "Lives: %d", lives);
+            renderglyph(craft);
+            renderAliens();
+            renderCovers();
+            mvprintw(maxy/2, maxx/2 - 10, "Press SPACE to start"); //TODO a bigger title screen please :)
             break;
 
         case RUNNING:
             clear();
             mvprintw(0, 0, "Lives: %d", lives);
             renderglyph(craft);
-            for(int y = 0; y < NUM_ALIEN_Y; ++y) {
-                for(int x = 0; x < NUM_ALIEN_X; ++x) {
-                    if(!alienDead(alien[y][x])) {
-                        renderglyph(alien[y][x]);
-                    }
-                }
-            }
-
-            for(int n = 0; n < NUM_COVER; ++n) {
-                renderCover(cover[n]);
-            }
-
+            renderAliens();
+            renderCovers();
             if(!noLaser(laser)) {
                 mvprintw(laser.y, laser.x, "█");
             }
@@ -410,7 +424,7 @@ int islost() {
 
 int init() {
     srand(69);
-    gameState = RUNNING;
+    gameState = TITLE;
     int lineGlyph[5] = {5, 1, 1, 3, 3};
     craft.x = maxx / 2;
     craft.y = maxy - 4;
