@@ -11,6 +11,7 @@
 #define NUM_COVER 4
 #define COVER_WIDTH 24
 #define COVER_HEIGHT 10
+#define ALIEN_SHOOT_AT 150
 
 typedef struct {
     int x, y, w, h;
@@ -30,6 +31,7 @@ int maxx, maxy;
 character laser;
 character alien[NUM_ALIEN_Y][NUM_ALIEN_X];
 character alienLasers[2];
+int alienShootThresh;
 character cover[NUM_COVER];
 int coverBlock[NUM_COVER][COVER_HEIGHT][COVER_WIDTH];
 
@@ -284,11 +286,15 @@ int update() {
                 laser.y -= LASER_VELOCITY;
             }
             for(int x = 0; x < 2; x++) {
-                if(noLaser(alienLasers[x])) {
+                if(noLaser(alienLasers[x])
+                && alienShootThresh > ALIEN_SHOOT_AT) {
                     alienShootLaser(&alienLasers[x]);
                 } else {
                     alienLasers[x].y += 1;
                 }
+            }
+            if(alienShootThresh <= ALIEN_SHOOT_AT) {
+                alienShootThresh += 1;
             }
 
             if(collideCover(laser)) {
@@ -375,6 +381,7 @@ int init() {
     craft.h = 4;
     craft.glyph = 0;
     laser.x = -1; 
+    alienShootThresh = 0;
     //create alien
     for(int y = 0; y < NUM_ALIEN_Y; ++y) {
         for(int x = 0; x < NUM_ALIEN_X; ++x) {
