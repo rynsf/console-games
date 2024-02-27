@@ -198,7 +198,7 @@ int coverHaveIndex(int y, int x, character cover) {
     return (x >= 0 && 
             y >= 0 &&
             x < cover.w &&
-            y < cover.h);
+            y < cover.h*2);
 }
 
 int destroyCoverElement(int y, int x, character cover) {
@@ -212,8 +212,9 @@ int collideCover(character laser) {
     for(int n = 0; n < NUM_COVER; ++n) {
         if(collisonPointRect(laser, cover[n])) {
             int ofsetx = abs(laser.x - cover[n].x);
-            int ofsety = abs(laser.y - cover[n].y);
-            if(coverBlock[n][ofsety][ofsetx]) {
+            int ofsety = abs(laser.y - cover[n].y) * 2;
+            if(coverBlock[n][ofsety][ofsetx]
+                || coverBlock[n][ofsety+1][ofsetx]) {
                 for(int y = -2; y <= 2; ++y) {
                     for(int x = -2; x <= 2; ++x) {
                         if(y == -2 ||
@@ -301,7 +302,7 @@ int update() {
 }
 
 int renderCover(character cover) {
-    for(int y = 0; y < cover.h; y += 2) {
+    for(int y = 0; y < cover.h*2; y += 2) {
         for(int x = 0; x < cover.w; ++x) {
             int glyph = coverBlock[cover.glyph][y][x] + 
                         coverBlock[cover.glyph][y+1][x] * 2;
@@ -379,7 +380,7 @@ int init() {
         cover[n].x = (maxx/5) * (n+1) - (COVER_WIDTH/2);
         cover[n].y = maxy - COVER_HEIGHT/2 - 6;
         cover[n].w = COVER_WIDTH;
-        cover[n].h = COVER_HEIGHT;
+        cover[n].h = COVER_HEIGHT/2;
         cover[n].glyph = n;
         for(int y = 0; y < COVER_HEIGHT; ++y) {
             for(int x = 0; x < COVER_WIDTH; ++x) {
