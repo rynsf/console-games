@@ -6,6 +6,7 @@
 
 #define BOARDX 10
 #define BOARDY 20
+#define NUM_OF_TETROS 7
 
 int tetrominos[7][4][2] = {
     {{-1, 0}, {0, 0}, {1, 0}, {2, 0}},
@@ -30,9 +31,9 @@ int tetrominos[7][4][2] = {
              {0, 1}, {1, 1}},
 };
 
-int tetro[4];
+int tetro[4][2];
 
-int maxx, maxy;
+int maxx, maxy, spawnx, spawny;
 
 int board[BOARDY][BOARDX];
 
@@ -47,7 +48,19 @@ int render() {
             }
         }
     }
+    for(int n = 0; n < 4; n++) {
+        mvprintw(tetro[n][1], tetro[n][0], "#");
+    }
     refresh();
+    return 0;
+}
+
+int spawn_tetro() {
+    int random_tetro = rand() % NUM_OF_TETROS;
+    for(int n = 0; n < 4; n++) {
+        tetro[n][0] = spawnx + tetrominos[random_tetro][n][0];
+        tetro[n][1] = spawny + tetrominos[random_tetro][n][1];
+    }
     return 0;
 }
 
@@ -63,6 +76,9 @@ int main() {
     curs_set(0);
     timeout(0);
     getmaxyx(win, maxy, maxx);
+    spawnx = BOARDX / 2;
+    spawny = 0;
+    spawn_tetro();
     int quit = 0;
     char input;
 
