@@ -7,6 +7,12 @@
 #define BOARDX 10
 #define BOARDY 20
 #define NUM_OF_TETROS 7
+#define MOVE_DOWN_THRESHOLD 30
+
+int tetro[4][2];
+int maxx, maxy, spawnx, spawny;
+int board[BOARDY][BOARDX];
+int moveDownAcc;
 
 int tetrominos[7][4][2] = {
     {{-1, 0}, {0, 0}, {1, 0}, {2, 0}},
@@ -31,12 +37,6 @@ int tetrominos[7][4][2] = {
              {0, 1}, {1, 1}},
 };
 
-int tetro[4][2];
-
-int maxx, maxy, spawnx, spawny;
-
-int board[BOARDY][BOARDX];
-
 int render() {
     clear();
     for(int y = 0; y < BOARDY; y++) {
@@ -55,7 +55,7 @@ int render() {
     return 0;
 }
 
-int spawn_tetro() {
+int tetroSpawn() {
     int random_tetro = rand() % NUM_OF_TETROS;
     for(int n = 0; n < 4; n++) {
         tetro[n][0] = spawnx + tetrominos[random_tetro][n][0];
@@ -64,7 +64,19 @@ int spawn_tetro() {
     return 0;
 }
 
+int tetroMoveDown() {
+    for(int n = 0; n < 4; n++) {
+        tetro[n][1] += 1;
+    }
+    return 0;
+}
+
 int update() {
+    moveDownAcc += 1;
+    if(moveDownAcc >= MOVE_DOWN_THRESHOLD) {
+        tetroMoveDown();
+        moveDownAcc = 0;
+    }
     return 0;
 }
 
@@ -78,7 +90,7 @@ int main() {
     getmaxyx(win, maxy, maxx);
     spawnx = BOARDX / 2;
     spawny = 0;
-    spawn_tetro();
+    tetroSpawn();
     int quit = 0;
     char input;
 
