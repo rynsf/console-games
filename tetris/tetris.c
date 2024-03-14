@@ -12,7 +12,7 @@
 int tetro[4][2];
 int maxx, maxy, spawnx, spawny;
 int board[BOARDY][BOARDX];
-int moveDownAcc;
+int moveDownAcc, tetroVelocity = 5;
 
 int tetrominos[7][4][2] = {
     {{-1, 0}, {0, 0}, {1, 0}, {2, 0}},
@@ -132,8 +132,20 @@ int tetroMoveLeft() {
     return 0;
 }
 
+int tetroLock() {
+    for(int n = 0; n < 4; n++) {
+        board[tetro[n][1]][tetro[n][0]] = 1;
+    }
+    return 0;
+}
+
 int update() {
-    moveDownAcc += 1;
+    moveDownAcc += tetroVelocity;
+    if(moveDownAcc >= MOVE_DOWN_THRESHOLD && tetroCollison()) {
+        tetroLock();
+        tetroSpawn();
+        moveDownAcc = 0;
+    }
     if(moveDownAcc >= MOVE_DOWN_THRESHOLD && !tetroCollison()) {
         tetroMoveDown();
         moveDownAcc = 0;
