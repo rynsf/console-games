@@ -64,6 +64,24 @@ int tetroSpawn() {
     return 0;
 }
 
+int tetroLeftWallCollison() {
+    for(int n = 0; n < 4; n++) {
+        if(tetro[n][0] == 0) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+int tetroRightWallCollison() {
+    for(int n = 0; n < 4; n++) {
+        if(tetro[n][0] == BOARDX - 1) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
 int tetroMoveDown() {
     for(int n = 0; n < 4; n++) {
         tetro[n][1] += 1;
@@ -71,10 +89,19 @@ int tetroMoveDown() {
     return 0;
 }
 
-int tetroWallCollison() {
-    for(int n = 0; n < 4; n++) {
-        if(tetro[n][0] == 0 || tetro[n][0] == BOARDX - 1) {
-            return 1;
+int tetroMoveRight() {
+    if(!tetroRightWallCollison()) {
+        for(int n = 0; n < 4; n++) {
+            tetro[n][0] += 1;
+        }
+    }
+    return 0;
+}
+
+int tetroMoveLeft() {
+    if(!tetroLeftWallCollison()) {
+        for(int n = 0; n < 4; n++) {
+            tetro[n][0] -= 1;
         }
     }
     return 0;
@@ -108,6 +135,14 @@ int main() {
             switch(input) {
                 case 'q':
                     quit = 1;
+                    break;
+
+                case 't':
+                    tetroMoveRight();
+                    break;
+
+                case 'r':
+                    tetroMoveLeft();
                     break;
 
                 default: {};
