@@ -4,11 +4,49 @@
 #include <locale.h>
 #include <unistd.h>
 
+#define BOARDX 10
+#define BOARDY 20
+
+int tetrominos[7][4][2] = {
+    {{-1, 0}, {0, 0}, {1, 0}, {2, 0}},
+
+    {{-1, 0}, {0, 0},
+    {-1, 1}, {0, 1}},
+
+    {{-1, 0}, {0, 0}, {1, 0},
+              {0, 1}},
+
+    {{-1, 0}, {0, 0}, {1, 0},
+    {-1, 1}},
+              
+    {{-1, 0}, {0, 0}, {1, 0},
+                     {1, 1}},
+
+              {{0, 0}, {1, 0},
+    {-1, 1}, {0, 1}},
+
+
+    {{-1, 0}, {0, 0},
+             {0, 1}, {1, 1}},
+};
+
+int tetro[4];
+
 int maxx, maxy;
+
+int board[BOARDY][BOARDX];
 
 int render() {
     clear();
-    printw("This is Tetris\n");
+    for(int y = 0; y < BOARDY; y++) {
+        for(int x = 0; x < BOARDX; x++) {
+            if(board[y][x] == 1) {
+                mvprintw(y, x, "#");
+            } else {
+                mvprintw(y, x, ".");
+            }
+        }
+    }
     refresh();
     return 0;
 }
