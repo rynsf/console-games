@@ -82,6 +82,31 @@ int tetroRightWallCollison() {
     return 0;
 }
 
+int tetroFloorCollison() {
+    for(int n = 0; n < 4; n++) {
+        if(tetro[n][1] == BOARDY - 1) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+int tetroLockedTetroCollison() {
+    for(int n = 0; n < 4; n++) {
+        if(board[tetro[n][1]+1][tetro[n][0]] == 1) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+int tetroCollison() {
+    if(tetroFloorCollison() || tetroLockedTetroCollison()) {
+        return 1;
+    }
+    return 0;
+}
+
 int tetroMoveDown() {
     for(int n = 0; n < 4; n++) {
         tetro[n][1] += 1;
@@ -109,7 +134,7 @@ int tetroMoveLeft() {
 
 int update() {
     moveDownAcc += 1;
-    if(moveDownAcc >= MOVE_DOWN_THRESHOLD) {
+    if(moveDownAcc >= MOVE_DOWN_THRESHOLD && !tetroCollison()) {
         tetroMoveDown();
         moveDownAcc = 0;
     }
