@@ -71,6 +71,15 @@ int tetroMoveDown() {
     return 0;
 }
 
+int tetroWallCollison() {
+    for(int n = 0; n < 4; n++) {
+        if(tetro[n][0] == 0 || tetro[n][0] == BOARDX - 1) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
 int update() {
     moveDownAcc += 1;
     if(moveDownAcc >= MOVE_DOWN_THRESHOLD) {
