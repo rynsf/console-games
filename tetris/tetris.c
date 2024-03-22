@@ -7,9 +7,23 @@
 #define BOARDX 10
 #define BOARDY 20
 #define NUM_OF_TETROS 7
+#define NUM_OF_ORIENTATION 4
 #define MOVE_DOWN_THRESHOLD 30
+#define TETRO_I 0
+#define TETRO_J 1
+#define TETRO_L 2
+#define TETRO_O 3
+#define TETRO_S 4
+#define TETRO_T 5
+#define TETRO_Z 6
 
-int tetro[4][2];
+typedef struct {
+    int piece[4][2];
+    int type;
+    int orientation;
+} tetromino;
+
+tetromino tetro;
 int maxx, maxy, spawnx, spawny;
 int board[BOARDY][BOARDX];
 int moveDownAcc, tetroVelocity = 5;
@@ -17,24 +31,60 @@ int moveDownAcc, tetroVelocity = 5;
 int tetrominos[7][4][2] = {
     {{-1, 0}, {0, 0}, {1, 0}, {2, 0}},
 
+    {{-1, 0},
+    {-1, 1}, {0, 1}, {1, 1}},
+
+                    {{1, 0},
+    {-1, 1}, {0, 1}, {1, 1}},
+
     {{-1, 0}, {0, 0},
     {-1, 1}, {0, 1}},
-
-    {{-1, 0}, {0, 0}, {1, 0},
-              {0, 1}},
-
-    {{-1, 0}, {0, 0}, {1, 0},
-    {-1, 1}},
-              
-    {{-1, 0}, {0, 0}, {1, 0},
-                     {1, 1}},
 
               {{0, 0}, {1, 0},
     {-1, 1}, {0, 1}},
 
+            {{0, 0},
+    {-1, 1}, {0, 1}, {1, 1}},
 
     {{-1, 0}, {0, 0},
              {0, 1}, {1, 1}},
+};
+
+int tetroBoundingBox[7][4][3] = {
+    {{0, 1, 4},
+    {1, 0, 4},
+    {0, 2, 4},
+    {2, 0, 4}},
+
+    {{0, 0, 3},
+    {0, 0, 3},
+    {0, 1, 3},
+    {1, 0, 3}}, 
+
+    {{0, 0, 3},
+    {0, 0, 3},
+    {0, 1, 3},
+    {1, 0, 3}}, 
+
+    {{0, 0, 2},
+    {0, 0, 2},
+    {0, 0, 2},
+    {0, 0, 2}},
+
+    {{0, 0, 3},
+    {0, 0, 3},
+    {0, 1, 3},
+    {1, 0, 3}},
+
+    {{0, 0, 3},
+    {0, 0, 3},
+    {0, 1, 3},
+    {1, 0, 3}},
+
+    {{0, 0, 3},
+    {0, 0, 3},
+    {0, 1, 3},
+    {1, 0, 3}},
 };
 
 int render() {
@@ -49,8 +99,27 @@ int render() {
         }
     }
     for(int n = 0; n < 4; n++) {
-        mvprintw(tetro[n][1], tetro[n][0], "#");
+        mvprintw(tetro.piece[n][1], tetro.piece[n][0], "#");
     }
+
+    //int minx = BOARDX, miny = BOARDY; // debug
+    //int boxx, boxy, boxw;
+    //for(int n = 0; n < 4; n++) {
+    //    minx = minx > tetro.piece[n][0] ? tetro.piece[n][0] : minx;
+    //    miny = miny > tetro.piece[n][1] ? tetro.piece[n][1] : miny;
+    //}
+    //boxx = minx - tetroBoundingBox[tetro.type][tetro.orientation][0];
+    //boxy = miny - tetroBoundingBox[tetro.type][tetro.orientation][1];
+    //boxw = tetroBoundingBox[tetro.type][tetro.orientation][2];
+    //for(int y = 0; y < boxw; y++) {
+    //    for(int x = 0; x < boxw; x++) {
+    //        mvprintw(boxy+y, boxx+x, "o");
+    //    }
+    //}
+    //for(int n = 0; n < 4; n++) {
+    //    mvprintw(tetro.piece[n][1], tetro.piece[n][0], "#");
+    //} // end debug
+    
     refresh();
     return 0;
 }
@@ -58,15 +127,17 @@ int render() {
 int tetroSpawn() {
     int random_tetro = rand() % NUM_OF_TETROS;
     for(int n = 0; n < 4; n++) {
-        tetro[n][0] = spawnx + tetrominos[random_tetro][n][0];
-        tetro[n][1] = spawny + tetrominos[random_tetro][n][1];
+        tetro.piece[n][0] = spawnx + tetrominos[random_tetro][n][0];
+        tetro.piece[n][1] = spawny + tetrominos[random_tetro][n][1];
     }
+    tetro.type = random_tetro;
+    tetro.orientation = 0;
     return 0;
 }
 
 int tetroLeftWallCollison() {
     for(int n = 0; n < 4; n++) {
-        if(tetro[n][0] == 0) {
+        if(tetro.piece[n][0] == 0) {
             return 1;
         }
     }
@@ -75,7 +146,7 @@ int tetroLeftWallCollison() {
 
 int tetroLeftLockedTetroCollison() {
     for(int n = 0; n < 4; n++) {
-        if(board[tetro[n][1]][tetro[n][0]-1] == 1) {
+        if(board[tetro.piece[n][1]][tetro.piece[n][0]-1] == 1) {
             return 1;
         }
     }
@@ -91,7 +162,7 @@ int tetroLeftCollison() {
 
 int tetroRightWallCollison() {
     for(int n = 0; n < 4; n++) {
-        if(tetro[n][0] == BOARDX - 1) {
+        if(tetro.piece[n][0] == BOARDX - 1) {
             return 1;
         }
     }
@@ -100,7 +171,7 @@ int tetroRightWallCollison() {
 
 int tetroRightLockedTetroCollison() {
     for(int n = 0; n < 4; n++) {
-        if(board[tetro[n][1]][tetro[n][0]+1] == 1) {
+        if(board[tetro.piece[n][1]][tetro.piece[n][0]+1] == 1) {
             return 1;
         }
     }
@@ -116,7 +187,7 @@ int tetroRightCollison() {
 
 int tetroFloorCollison() {
     for(int n = 0; n < 4; n++) {
-        if(tetro[n][1] == BOARDY - 1) {
+        if(tetro.piece[n][1] == BOARDY - 1) {
             return 1;
         }
     }
@@ -125,7 +196,7 @@ int tetroFloorCollison() {
 
 int tetroLockedTetroCollison() {
     for(int n = 0; n < 4; n++) {
-        if(board[tetro[n][1]+1][tetro[n][0]] == 1) {
+        if(board[tetro.piece[n][1]+1][tetro.piece[n][0]] == 1) {
             return 1;
         }
     }
@@ -141,7 +212,7 @@ int tetroCollison() {
 
 int tetroMoveDown() {
     for(int n = 0; n < 4; n++) {
-        tetro[n][1] += 1;
+        tetro.piece[n][1] += 1;
     }
     return 0;
 }
@@ -149,7 +220,7 @@ int tetroMoveDown() {
 int tetroMoveRight() {
     if(!tetroRightCollison()) {
         for(int n = 0; n < 4; n++) {
-            tetro[n][0] += 1;
+            tetro.piece[n][0] += 1;
         }
     }
     return 0;
@@ -158,7 +229,7 @@ int tetroMoveRight() {
 int tetroMoveLeft() {
     if(!tetroLeftCollison()) {
         for(int n = 0; n < 4; n++) {
-            tetro[n][0] -= 1;
+            tetro.piece[n][0] -= 1;
         }
     }
     return 0;
@@ -166,8 +237,81 @@ int tetroMoveLeft() {
 
 int tetroLock() {
     for(int n = 0; n < 4; n++) {
-        board[tetro[n][1]][tetro[n][0]] = 1;
+        board[tetro.piece[n][1]][tetro.piece[n][0]] = 1;
     }
+    return 0;
+}
+
+int tetroRotate() {
+    int minx = BOARDX, miny = BOARDY;
+    int boxx, boxy, boxw;
+    for(int n = 0; n < 4; n++) {
+        minx = minx > tetro.piece[n][0] ? tetro.piece[n][0] : minx;
+        miny = miny > tetro.piece[n][1] ? tetro.piece[n][1] : miny;
+    }
+
+    boxx = minx - tetroBoundingBox[tetro.type][tetro.orientation][0];
+    boxy = miny - tetroBoundingBox[tetro.type][tetro.orientation][1];
+    boxw = tetroBoundingBox[tetro.type][tetro.orientation][2];
+
+    int boundingBox[boxw][boxw];
+    int boundingBoxRotated[boxw][boxw];
+    int tetroTemp[4][2];
+
+    for(int n = 0; n < boxw; n++) {
+        for(int m = 0; m < boxw; m++) {
+            boundingBox[n][m] = 0;
+            boundingBoxRotated[n][m] = 0;
+        }
+    }
+
+    for(int n = 0; n < 4; n++) {
+        tetroTemp[n][0] = tetro.piece[n][0] - boxx;
+        tetroTemp[n][1] = tetro.piece[n][1] - boxy;
+    }
+
+    for(int n = 0; n < 4; n++) {
+        boundingBox[tetroTemp[n][1]][tetroTemp[n][0]] = 1;
+    }
+
+    for(int n = 0; n < boxw; n++) {
+        for(int m = 0; m < boxw; m++) {
+            boundingBoxRotated[n][m] = boundingBox[m][boxw-1-n];
+        }
+    }
+
+    int num = 0;
+    for(int n = 0; n < boxw; n++) {
+        for(int m = 0; m < boxw; m++) {
+            if(boundingBoxRotated[n][m] == 1) {
+                tetroTemp[num][0] = m;
+                tetroTemp[num][1] = n;
+                num += 1;
+            }
+        }
+    }
+
+    for(int n = 0; n < 4; n++) {
+        tetroTemp[n][0] = boxx + tetroTemp[n][0];
+        tetroTemp[n][1] = boxy + tetroTemp[n][1];
+    }
+
+    for(int n = 0; n < 4; n++) {
+        if(tetroTemp[n][0] < 0 ||
+            tetroTemp[n][0] >= BOARDX ||
+            tetroTemp[n][1] < 0 ||
+            tetroTemp[n][1] >= BOARDY ||
+            board[tetroTemp[n][1]][tetroTemp[n][0]] == 1) {
+            return 0;
+        }
+    }
+
+    for(int n = 0; n < 4; n++) {
+        tetro.piece[n][0] = tetroTemp[n][0];
+        tetro.piece[n][1] = tetroTemp[n][1];
+    }
+    tetro.orientation = (tetro.orientation + 1) % NUM_OF_ORIENTATION;
+
     return 0;
 }
 
@@ -212,6 +356,10 @@ int main() {
 
                 case 'r':
                     tetroMoveLeft();
+                    break;
+
+                case 'f':
+                    tetroRotate();
                     break;
 
                 default: {};
