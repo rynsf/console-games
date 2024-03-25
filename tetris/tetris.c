@@ -315,6 +315,42 @@ int tetroRotate() {
     return 0;
 }
 
+int boardShiftDown(int line) {
+    for(int y = line; y >= 0; y--) {
+        for(int x = 0; x < BOARDX; x++) {
+            board[y][x] = board[y-1][x];
+        }
+    }
+    for(int x = 0; x < BOARDX; x++) {
+        board[0][x] = 0;
+    }
+    return 0;
+}
+
+int tetroLineClear() {
+    int isFilled = 1, numLinesFilled = 0;
+    int lineFilled[4] = {0};
+    for(int y = 0; y < BOARDY; y++) {
+        isFilled = 1;
+        for(int x = 0; x < BOARDX; x++) {
+            if(board[y][x] == 0) {
+                isFilled = 0;
+                break;
+            }
+        }
+        if(isFilled) {
+            lineFilled[numLinesFilled++] = y;
+        }
+    }
+
+    //clean the lines
+    // TODO tetris
+    for(int n = 0; n < numLinesFilled; n++) {
+        boardShiftDown(lineFilled[n]);
+    }
+    return 0;
+}
+
 int update() {
     moveDownAcc += tetroVelocity;
     if(moveDownAcc >= MOVE_DOWN_THRESHOLD && tetroCollison()) {
@@ -326,6 +362,7 @@ int update() {
         tetroMoveDown();
         moveDownAcc = 0;
     }
+    tetroLineClear();
     return 0;
 }
 

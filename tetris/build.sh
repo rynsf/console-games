@@ -2,4 +2,4 @@
 
 set -xe
 
-gcc tetris.c -lncursesw -o tetris.out
+gcc tetris.c -Wall -lncursesw -o tetris.out
