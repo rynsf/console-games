@@ -1,6 +1,6 @@
 #include <ncurses.h>
 
-#define NUM_GLYF 2
+#define NUM_GLYF 28
 
 typedef struct {
     char chr;
