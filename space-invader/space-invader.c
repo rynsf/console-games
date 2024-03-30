@@ -3,6 +3,7 @@
 #include <locale.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include "../fender.h"
 
 #define LASER_VELOCITY 1
 #define ACC_THRESH 30
@@ -391,7 +392,8 @@ int render() {
             renderglyph(craft);
             renderAliens();
             renderCovers();
-            mvprintw(maxy/2, maxx/2 - 10, "Press SPACE to start"); //TODO a bigger title screen please :)
+            // mvprintw(maxy/2, maxx/2 - 10, "Press SPACE to start"); //TODO a bigger title screen please :)
+            renderFont(maxx/2 - 60, maxy/2 + 3, "PRESS SPACE TO START");
             break;
 
         case RUNNING:

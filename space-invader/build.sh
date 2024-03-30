@@ -2,4 +2,6 @@
 
 set -xe
 
-gcc space-invader.c -lncursesw -o space-invader.out
+gcc -g -c ../fender.c
+gcc -g -c space-invader.c
+gcc space-invader.o fender.o -lncursesw -o space-invader.out
