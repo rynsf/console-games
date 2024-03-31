@@ -364,6 +364,18 @@ const glyf Font[] = {
         }
     },
     {
+        '.',
+        {0, 0, 1, 5},
+        {
+            {0,0,0,0,0,0},
+            {0,0,0,0,0,0},
+            {0,0,0,0,0,0},
+            {0,0,0,0,0,0},
+            {1,0,0,0,0,0},
+            {0,0,0,0,0,0},
+        }
+    },
+    {
         '0',
         {0, 0, 3, 5},
         {
@@ -492,7 +504,7 @@ glyf cMap(char chr) {
             return Font[n];
         }
     }
-    return Font[0]; // may be have a wild card glyph
+    return Font[0]; // TODO better default
 }
 
 int getBitFromMap(int y, int x, glyf g) { 
@@ -507,7 +519,7 @@ int renderFont(int posx, int posy, char* str) {
     int starting_posx = posx;
     for(int c = 0; str[c] != '\0'; c++) { // classic NULL terminated string...
         if(str[c] == '\n') {
-            posy += 4;
+            posy += 4; // magic variable, line height
             posx = starting_posx;
             continue;
         }
