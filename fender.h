@@ -1,7 +1,5 @@
 #include <ncurses.h>
 
-#define NUM_GLYF 28
-
 typedef struct {
     char chr;
     int box[4];
