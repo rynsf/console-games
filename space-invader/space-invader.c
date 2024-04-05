@@ -414,6 +414,9 @@ int render() {
 
         case ENDGAME:
             clear();
+            renderAliens();
+            renderCovers();
+            renderFont(maxx/2 - 60, maxy/2 + 3, "PRESS SPACE TO RESTART");
             break;
     }
     refresh();
@@ -520,6 +523,12 @@ int main() {
                     break;
 
                 case ENDGAME:
+                    switch(input) {
+                        case ' ':
+                            init();
+                            break;
+                        default: {}
+                    }
                     break;
 
                 default: {}
