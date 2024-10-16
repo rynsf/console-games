@@ -5,6 +5,8 @@
 #include <time.h>
 #include <unistd.h>
 
+#define COUNTER_MAX 100
+
 typedef struct Snake{
     int y;
     int x;
@@ -309,14 +311,22 @@ int main()
     maxy -= 1;
     maxx -= 2;
     showScore();
-    int speed = 100000;
+    int sleep = 30000;
+    int moveCounter = 0;
+    int moveInc = 10;
     while(!islost())
     {
-        clean_snake(0);
-        show_snake(0);
-        move_snake();
-        update_snake();
-        usleep(speed);
+        if(moveCounter >= COUNTER_MAX)
+        {
+            clean_snake(0);
+            show_snake(0);
+            move_snake();
+            update_snake();
+            moveCounter = 0;
+            moveInc = 10+((score / 10)*4); 
+        }
+        moveCounter += moveInc;
+        usleep(sleep);
     }
     freeMem();
     endwin();
